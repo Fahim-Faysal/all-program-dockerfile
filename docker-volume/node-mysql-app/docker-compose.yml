@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy        # <── wait for DB health
+    restart: unless-stopped               # <── auto-restart if crash
+    networks:
+      - appnet
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: testdb
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - appnet
+
+networks:
+  appnet:
+volumes:
+  db_data:
